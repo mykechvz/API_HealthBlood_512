@@ -1,4 +1,4 @@
-name: Docker build
+name: Docker build + smoke test
 
 on:
   push:
@@ -6,11 +6,67 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  docker:
     runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: gluco_api
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=12
+
     steps:
       - name: Descargar codigo
         uses: actions/checkout@v4
 
       - name: Construir imagen Docker
         run: docker build -t glucoapi:test .
+
+      - name: Crear tablas y datos de prueba
+        run: docker run --rm -i --network host mysql:8.0 mysql -h127.0.0.1 -P3306 -uroot -proot < schema.sql
+
+      - name: Iniciar el contenedor como en Render
+        run: |
+          docker run -d --name glucoapi --network host \
+            -e PORT=8090 \
+            -e DB_HOST=127.0.0.1 -e DB_PORT=3306 -e DB_NAME=gluco_api \
+            -e DB_USER=root -e DB_PASSWORD=root -e DB_SSL=DISABLED \
+            glucoapi:test
+          for i in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:8090/api/glucosa/getAllMedidas > /dev/null; then
+              echo "API lista en el puerto 8090"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "La API no arranco"
+          docker logs glucoapi
+          exit 1
+
+      - name: Smoke test de endpoints
+        run: |
+          set -e
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8090/)" = "200"
+          curl -fsS http://127.0.0.1:8090/api/glucosa/getAllMedidas | grep -q '"glucosa"'
+          curl -fsS "http://127.0.0.1:8090/api/glucosa/getMedidasByUsuarioId?idUsuario=1" | grep -q '"idUsuario":1'
+          curl -fsS http://127.0.0.1:8090/api/glucosa/getAllUsuarios | grep -q '"idUsuario":1'
+          test "$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:8090/api/glucosa/getMedidasByUsuarioId")" = "400"
+          curl -fsS -X POST http://127.0.0.1:8090/api/glucosa/insertarMedida \
+            -H 'Content-Type: application/json' \
+            -d '{"idUsuario":1,"glucosa":150,"contexto":"Prueba CI"}' | grep -q '"glucosa":150'
+          curl -fsS -X POST http://127.0.0.1:8090/api/glucosa/insertarMedida \
+            -H 'Content-Type: application/x-www-form-urlencoded' \
+            -d 'idUsuario=1&glucosa=99&contexto=Ayunas' | grep -q '"glucosa":99'
+          echo "Smoke test OK"
+
+      - name: Mostrar logs si falla
+        if: failure()
+        run: docker logs glucoapi || true

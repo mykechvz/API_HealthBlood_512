@@ -1,0 +1,10 @@
+.git
+.gitignore
+.gitattributes
+build
+dist
+target
+nbproject/private
+test
+*.md
+.env

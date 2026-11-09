@@ -1,0 +1,16 @@
+# NetBeans
+/build/
+/dist/
+/nbproject/private/
+/nbproject/ant-deploy.xml
+
+# Maven
+/target/
+
+# Docker / entorno
+.env
+*.log
+
+# Sistema
+Thumbs.db
+.DS_Store

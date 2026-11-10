@@ -6,12 +6,25 @@ WAR y lista para desplegarse en **Render** con Docker.
 - Landing page: `/`
 - API: `/api/glucosa/...`
 
+## 🌐 Despliegue actual
+
+| Recurso | URL |
+|---------|-----|
+| Landing page | https://glucoapi-mykechvz.onrender.com/ |
+| Todas las medidas | https://glucoapi-mykechvz.onrender.com/api/glucosa/getAllMedidas |
+| Medidas del usuario 1 | https://glucoapi-mykechvz.onrender.com/api/glucosa/getMedidasByUsuarioId?idUsuario=1 |
+| Todos los usuarios | https://glucoapi-mykechvz.onrender.com/api/glucosa/getAllUsuarios |
+
+- Hosting: **Render** (Docker, plan Free, región Oregon).
+- Base de datos: **TiDB Cloud Starter** (MySQL compatible), base `gluco_api`.
+- Repositorio: https://github.com/mykechvz/API_HealthBlood_512
+
 ---
 
 ## 📌 Endpoints
 
 Base local (Tomcat con el WAR en la raíz): `http://localhost:8090/api/glucosa`
-Base en Render: `https://TU-SERVICIO.onrender.com/api/glucosa`
+Base en Render: `https://glucoapi-mykechvz.onrender.com/api/glucosa`
 
 | Método | Ruta | Descripción |
 |--------|------|-------------|
@@ -24,11 +37,11 @@ Base en Render: `https://TU-SERVICIO.onrender.com/api/glucosa`
 ### Ejemplos
 
 ```bash
-curl "https://TU-SERVICIO.onrender.com/api/glucosa/getAllMedidas"
+curl "https://glucoapi-mykechvz.onrender.com/api/glucosa/getAllMedidas"
 
-curl "https://TU-SERVICIO.onrender.com/api/glucosa/getMedidasByUsuarioId?idUsuario=1"
+curl "https://glucoapi-mykechvz.onrender.com/api/glucosa/getMedidasByUsuarioId?idUsuario=1"
 
-curl "https://TU-SERVICIO.onrender.com/api/glucosa/getAllUsuarios"
+curl "https://glucoapi-mykechvz.onrender.com/api/glucosa/getAllUsuarios"
 ```
 
 Respuesta de `getMedidasByUsuarioId?idUsuario=1`:
@@ -49,7 +62,7 @@ Respuesta de `getMedidasByUsuarioId?idUsuario=1`:
 Insertar una medida:
 
 ```bash
-curl -X POST "https://TU-SERVICIO.onrender.com/api/glucosa/insertarMedida" \
+curl -X POST "https://glucoapi-mykechvz.onrender.com/api/glucosa/insertarMedida" \
   -H "Content-Type: application/json" \
   -d '{"idUsuario":1,"glucosa":115,"contexto":"Ayunas","notas":"Prueba"}'
 ```
@@ -154,10 +167,10 @@ gh repo create API_HealthBlood_512 --public --source . --push
 Render construye la imagen y publica:
 
 ```
-https://TU-SERVICIO.onrender.com/
-https://TU-SERVICIO.onrender.com/api/glucosa/getAllMedidas
-https://TU-SERVICIO.onrender.com/api/glucosa/getMedidasByUsuarioId?idUsuario=1
-https://TU-SERVICIO.onrender.com/api/glucosa/getAllUsuarios
+https://glucoapi-mykechvz.onrender.com/
+https://glucoapi-mykechvz.onrender.com/api/glucosa/getAllMedidas
+https://glucoapi-mykechvz.onrender.com/api/glucosa/getMedidasByUsuarioId?idUsuario=1
+https://glucoapi-mykechvz.onrender.com/api/glucosa/getAllUsuarios
 ```
 
 > Nota: en el plan gratuito el servicio se suspende tras 15 minutos sin
